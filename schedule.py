@@ -60,10 +60,10 @@ class Schedule:
         4: 'пятница',
     }
 
-    def show(self, day = ''):
+    def show(self, day=''):
         times = time.localtime()
         is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
-        if day in ('сегодня', ''):
+        if day in ('сегодня', '') and 0 <= time.localtime().tm_wday < 5:
             result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year}:'
             for i in self.schedule[self.dec_ru[time.localtime().tm_wday]][is_even]:
                 result += f'\n{i}: {self.schedule[self.dec_ru[time.localtime().tm_wday]][is_even][i]}'
@@ -72,7 +72,7 @@ class Schedule:
             for i in self.schedule[self.dec_ru[time.localtime().tm_wday + 1]][is_even]:
                 result += f'\n{i}: {self.schedule[self.dec_ru[time.localtime().tm_wday + 1]][is_even][i]}'
         elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
-            result = f'Расписсание на {day if day[-1] != "а" else day[:len(day)-1] + "у"} этой недели:'
+            result = f'Расписсание на {day if day[-1] != "а" else day[:len(day) - 1] + "у"} этой недели:'
             for i in self.schedule[day][is_even]:
                 result += f'\n{i}: {self.schedule[day][is_even][i]}'
         else:
