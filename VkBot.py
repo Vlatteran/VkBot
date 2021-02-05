@@ -67,7 +67,6 @@ class LongPollServer:
     def listen(self):
         while True:
             result = self.check()
-            print(result)
             if result is None:
                 continue
             yield result
@@ -106,5 +105,4 @@ class Chat:
 
 if __name__ == '__main__':
     bot = VkBot(access_token=token, group_id=group)
-    print(bot.server.listen)
     bot.run()
