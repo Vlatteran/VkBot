@@ -2,7 +2,7 @@ from requests import get
 import random
 from schedule import Schedule
 
-from config import token, group_id as group
+
 
 
 class VkBot:
@@ -104,5 +104,6 @@ class Chat:
 
 
 if __name__ == '__main__':
+    from config import token, group_id as group
     bot = VkBot(access_token=token, group_id=group)
     bot.run()
