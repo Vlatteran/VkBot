@@ -34,14 +34,18 @@ class LongPollServer:
         self.get_long_poll_server()
 
     def get_long_poll_server(self):
-        long_poll_serv = \
-            get(f'https://api.vk.com/method/groups.getLongPollServer?'
-                f'group_id={self.group_id}'
-                f'&v=5.126'
-                f'&access_token={self.access_token}').json()['response']
-        self.server = long_poll_serv['server']
-        self.key = long_poll_serv['key']
-        self.ts = long_poll_serv['ts']
+        try:
+            long_poll_serv = \
+                get(f'https://api.vk.com/method/groups.getLongPollServer?'
+                    f'group_id={self.group_id}'
+                    f'&v=5.126'
+                    f'&access_token={self.access_token}').json()
+            long_poll_serv = long_poll_serv['response']
+            self.server = long_poll_serv['server']
+            self.key = long_poll_serv['key']
+            self.ts = long_poll_serv['ts']
+        except KeyError:
+            print(long_poll_serv)
 
     def check(self):
         result = get(f"{self.server}?"
