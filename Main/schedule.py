@@ -78,18 +78,13 @@ class Schedule:
         else:
             times = time.localtime()
         is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
-        print(day, times)
         if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
             result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year}:'
             for i in self.schedule[self.dec_ru[times.tm_wday]][is_even]:
                 result += f'\n{i}: {self.schedule[self.dec_ru[times.tm_wday]][is_even][i]}'
-        elif day == 'завтра' and times.tm_wday < 4:
-            result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ' \
-                     f'({self.dec_ru[times.tm_wday + 1]}/{is_even}):'
-            for i in self.schedule[self.dec_ru[times.tm_wday + 1]][is_even]:
-                result += f'\n{i}: {self.schedule[self.dec_ru[times.tm_wday + 1]][is_even][i]}'
-        elif day == 'завтра' and times.tm_wday == 6:
-            is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
+        elif day == 'завтра' and (times.tm_wday == 6 or times.tm_wday < 4):
+            if times.tm_wday == 6:
+                is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
             result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} (понедельник/{is_even}):'
             for i in self.schedule[self.dec_ru[0]][is_even]:
                 result += f'\n{i}: {self.schedule[self.dec_ru[0]][is_even][i]}'
