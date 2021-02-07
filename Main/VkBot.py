@@ -4,31 +4,27 @@ from schedule import Schedule
 
 
 class VkBot:
-
     def __init__(self, access_token, group_id, bot_admin):
         self.access_token = access_token
         self.group_id = group_id
         self.bot_admin = bot_admin
         self.server = LongPollServer(access_token, group_id, self)
         self.schedule = Schedule()
+        self.is_running = False
+        self.commands = {}
 
     def run(self):
         for event, context in self.server.listen():
             if event == 'message_new':
-                print(f'[VkBot.run()/on_message_new_event]:'
-                      f'{context.sender.first_name} {context.sender.last_name} '
-                      f'in {context.chat.title}: {context.text}')
-                if context.text[0] == '!':
-                    command = context.text[
-                              1:len(context.text) if context.text.find(' ') == -1 else context.text.find(' ')]
-                    if command in ('пары', 'расписание'):
-                        context.reply(self.schedule.show(context.text.replace(f'!{command}', '').strip()), self)
-                    elif command == 'stop':
-                        if context.sender.id == self.bot_admin:
-                            context.reply('Bot has been stopped', self)
-                            break
-                        else:
-                            context.reply("You don't have permissions to stop bot", self)
+                self.on_new_message(context)
+
+            if not self.is_running:
+                break
+
+    def on_new_message(self, context):
+        print(f'[VkBot.run()/on_message_new_event]:'
+              f'{context.sender.first_name} {context.sender.last_name} '
+              f'in {context.chat.title}: {context.text}')
 
 
 class LongPollServer:
@@ -140,10 +136,3 @@ class User:
         self.id = user_id
         self.first_name = result['first_name']
         self.last_name = result['last_name']
-
-
-if __name__ == '__main__':
-    from config import token, group_id as group, bot_admin as admin
-
-    bot = VkBot(access_token=token, group_id=group, bot_admin=admin)
-    bot.run()
