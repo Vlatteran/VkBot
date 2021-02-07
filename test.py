@@ -1,7 +1,7 @@
 from requests import get
-from config import token, group_id
+from Main.config import token, group_id
 import random
-from schedule import Schedule
+from Main.schedule import Schedule
 
 schedule = Schedule()
 

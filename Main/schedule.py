@@ -1,4 +1,6 @@
 import time
+import datetime
+import re
 
 
 class Schedule:
@@ -68,17 +70,24 @@ class Schedule:
     }
 
     def show(self, day=''):
-        times = time.localtime()
+        date_regex = r'(\b(0?[1-9]|[1-2][0-9]|3[0-1])[\.\\]([1][0-2]|0?[1-9])\b)'
+        if re.match(date_regex, day):
+            days = re.split(r'[.\\]', day)
+            times = datetime.datetime(day=int(days[0]), month=int(days[1]), year=2021).timetuple()
+            day = ''
+        else:
+            times = time.localtime()
         is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
-        if day in ('сегодня', '') and 0 <= time.localtime().tm_wday < 5:
+        print(day, times)
+        if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
             result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year}:'
-            for i in self.schedule[self.dec_ru[time.localtime().tm_wday]][is_even]:
-                result += f'\n{i}: {self.schedule[self.dec_ru[time.localtime().tm_wday]][is_even][i]}'
+            for i in self.schedule[self.dec_ru[times.tm_wday]][is_even]:
+                result += f'\n{i}: {self.schedule[self.dec_ru[times.tm_wday]][is_even][i]}'
         elif day == 'завтра' and times.tm_wday < 4:
             result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ' \
-                     f'({self.dec_ru[time.localtime().tm_wday + 1]}/{is_even}):'
-            for i in self.schedule[self.dec_ru[time.localtime().tm_wday + 1]][is_even]:
-                result += f'\n{i}: {self.schedule[self.dec_ru[time.localtime().tm_wday + 1]][is_even][i]}'
+                     f'({self.dec_ru[times.tm_wday + 1]}/{is_even}):'
+            for i in self.schedule[self.dec_ru[times.tm_wday + 1]][is_even]:
+                result += f'\n{i}: {self.schedule[self.dec_ru[times.tm_wday + 1]][is_even][i]}'
         elif day == 'завтра' and times.tm_wday == 6:
             is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
             result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} (понедельник/{is_even}):'
@@ -100,4 +109,4 @@ class Schedule:
 
 if __name__ == '__main__':
     a = Schedule()
-    print(a.show(''))
+    print(a.show('1.2'))
