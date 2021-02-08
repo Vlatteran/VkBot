@@ -1,10 +1,16 @@
 from requests import get
 import random
 from schedule import Schedule
+import time
+import Logger
 
 
 class VkBot:
-    def __init__(self, access_token, group_id, bot_admin):
+    def __init__(self, access_token, group_id, bot_admin, logger=None, log_file='', log_to_file=False,
+                 log_to_console=True):
+        if logger is None:
+            logger = Logger.Logger(log_to_console, log_to_file, log_file)
+        self.logger = logger
         self.access_token = access_token
         self.group_id = group_id
         self.bot_admin = bot_admin
@@ -14,6 +20,7 @@ class VkBot:
         self.commands = {}
 
     def run(self):
+        self.is_running = True
         for event, context in self.server.listen():
             if event == 'message_new':
                 self.on_new_message(context)
@@ -22,9 +29,10 @@ class VkBot:
                 break
 
     def on_new_message(self, context):
-        print(f'[VkBot.run()/on_message_new_event]:'
-              f'{context.sender.first_name} {context.sender.last_name} '
-              f'in {context.chat.title}: {context.text}')
+        self.logger.log(
+            text=f'Message from {context.sender.first_name} {context.sender.last_name} ({context.sender.id}) '
+                 f'at {time.strftime("%x %X", context.date)}:\n{context.text}\n',
+            method_name='VkBot.run()')
 
 
 class LongPollServer:
@@ -50,7 +58,7 @@ class LongPollServer:
             self.key = long_poll_serv['key']
             self.ts = long_poll_serv['ts']
         except KeyError:
-            print(long_poll_serv)
+            self.vk.logger.log(long_poll_serv, method_name='LongPollServer.get_long_poll_server()')
 
     def check(self):
         result = get(f"{self.server}?"
@@ -59,33 +67,35 @@ class LongPollServer:
                      f"ts={self.ts}&"
                      f"wait=25").json()
         if 'failed' in result:
+            self.vk.logger.log(f'failed with:{result}', method_name='LongPollServer.check()')
             error = result['failed']
             if error == 1:
                 self.ts = result['ts']
             elif error in (2, 3):
                 self.get_long_poll_server()
             else:
-                print(f'[VkBot.LongPollServer.check()] unexpected error code: {error}\n{result}')
+                self.vk.logger.log(f'Unexpected error code: {error}\n{result}', method_name='LongPollServer.check()')
         else:
+            self.vk.logger.log(f'new event: {result}', method_name='LongPollServer.check()')
             self.ts = result['ts']
             events = result['updates']
             for event in events:
                 if event['type'] == 'message_new':
-                    return 'message_new', Message(event['object']['message'], self.vk)
+                    yield 'message_new', Message(event['object']['message'], self.vk)
 
     def listen(self):
         while True:
             result = self.check()
-            if result is None:
-                continue
-            yield result
+            if result is not None:
+                for event in result:
+                    yield event
 
 
 class Message:
     text: str
 
     def __init__(self, message_dict, vk):
-        self.date = message_dict['date']
+        self.date = time.localtime(message_dict['date'])
         self.text = message_dict['text']
         self.sender = User(message_dict['from_id'], vk)
         self.chat = Chat(message_dict['peer_id'], vk)

@@ -17,8 +17,13 @@ class MyBot(VkBot.VkBot):
                     context.reply("You don't have permissions to stop bot", self)
 
 
-if __name__ == '__main__':
+def main():
     from config import token, group_id as group, bot_admin as admin
-
     bot = MyBot(access_token=token, group_id=group, bot_admin=admin)
     bot.run()
+    bot.logger.log('Crashed', method_name='MyBot.main()')
+    input()
+
+
+if __name__ == '__main__':
+    main()
