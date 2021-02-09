@@ -21,12 +21,15 @@ class VkBot:
 
     def run(self):
         self.is_running = True
-        for event, context in self.server.listen():
-            if event == 'message_new':
-                self.on_new_message(context)
+        try:
+            for event, context in self.server.listen():
+                if event == 'message_new':
+                    self.on_new_message(context)
 
-            if not self.is_running:
-                break
+                if not self.is_running:
+                    break
+        except Exception as e:
+            self.logger.log(f'Crushed with:\n{e}', method_name='VkBot.run()')
 
     def on_new_message(self, context):
         self.logger.log(
@@ -61,11 +64,20 @@ class LongPollServer:
             self.vk.logger.log(long_poll_serv, method_name='LongPollServer.get_long_poll_server()')
 
     def check(self):
-        result = get(f"{self.server}?"
-                     f"act=a_check&"
-                     f"key={self.key}&"
-                     f"ts={self.ts}&"
-                     f"wait=25").json()
+        result = None
+        retries = 0
+        while result is None:
+            try:
+                result = get(f"{self.server}?"
+                             f"act=a_check&"
+                             f"key={self.key}&"
+                             f"ts={self.ts}&"
+                             f"wait=2").json()
+            except Exception as e:
+                self.vk.logger.log(f'try{retries + 1}: failed with:\n{e}', method_name='LongPollServer.check()')
+                retries += 1
+                if retries == 5:
+                    self.vk.logger.log('to many tries', method_name='LongPollServer.check()')
         if 'failed' in result:
             self.vk.logger.log(f'failed with:{result}', method_name='LongPollServer.check()')
             error = result['failed']
@@ -76,7 +88,8 @@ class LongPollServer:
             else:
                 self.vk.logger.log(f'Unexpected error code: {error}\n{result}', method_name='LongPollServer.check()')
         else:
-            self.vk.logger.log(f'new event: {result}', method_name='LongPollServer.check()')
+            if len(result['updates']) > 0:
+                self.vk.logger.log(f'new event: {result}', method_name='LongPollServer.check()')
             self.ts = result['ts']
             events = result['updates']
             for event in events:
