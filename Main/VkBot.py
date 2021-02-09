@@ -72,7 +72,7 @@ class LongPollServer:
                              f"act=a_check&"
                              f"key={self.key}&"
                              f"ts={self.ts}&"
-                             f"wait=2").json()
+                             f"wait=25").json()
             except Exception as e:
                 self.vk.logger.log(f'try{retries + 1}: failed with:\n{e}', method_name='LongPollServer.check()')
                 retries += 1
@@ -88,8 +88,8 @@ class LongPollServer:
             else:
                 self.vk.logger.log(f'Unexpected error code: {error}\n{result}', method_name='LongPollServer.check()')
         else:
-            if len(result['updates']) > 0:
-                self.vk.logger.log(f'new event: {result}', method_name='LongPollServer.check()')
+            # if len(result['updates']) > 0:
+            #     self.vk.logger.log(f'new event: {result}', method_name='LongPollServer.check()')
             self.ts = result['ts']
             events = result['updates']
             for event in events:
