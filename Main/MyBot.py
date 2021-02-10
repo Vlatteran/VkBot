@@ -4,7 +4,7 @@ import VkBot
 class MyBot(VkBot.VkBot):
     def on_new_message(self, context):
         super().on_new_message(context)
-        if context.text[0] == '!' and len(context.text) > 0:
+        if len(context.text) > 0 and context.text[0] == '!':
             command = context.text[
                       1:len(context.text) if context.text.find(' ') == -1 else context.text.find(' ')]
             if command in ('пары', 'расписание'):
