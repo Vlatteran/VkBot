@@ -133,11 +133,15 @@ class Chat:
                      f'peer_ids={chat_id}&'
                      f'access_token={vk.access_token}&'
                      f'v=5.126').json()
+        vk.logger.log(result)
         result = result['response']['items'][0]
         self.chat_id = chat_id
-        self.title = result['chat_settings']['title']
-        self.admins = [User(admin_id, vk) for admin_id in result['chat_settings']['admin_ids'] if admin_id > 0]
-        self.member_count = result['chat_settings']['members_count']
+        if result['peer']['type'] == 'chat':
+            self.title = result['chat_settings']['title']
+            self.admins = [User(admin_id, vk) for admin_id in result['chat_settings']['admin_ids'] if admin_id > 0]
+            self.member_count = result['chat_settings']['members_count']
+        else:
+            self.title = 'ЛС'
 
     def send(self, text, vk):
         return get(f'https://api.vk.com/method/messages.send?'
