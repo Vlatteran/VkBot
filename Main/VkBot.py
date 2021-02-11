@@ -135,7 +135,6 @@ class Chat:
                      f'peer_ids={chat_id}&'
                      f'access_token={vk.access_token}&'
                      f'v=5.126').json()
-        vk.logger.log(result)
         result = result['response']['items'][0]
         self.chat_id = chat_id
         if result['peer']['type'] == 'chat':
