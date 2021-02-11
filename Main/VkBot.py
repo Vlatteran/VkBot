@@ -35,8 +35,8 @@ class VkBot:
     def on_new_message(self, context):
         self.logger.log(
             text=f'Message from {context.sender.first_name} {context.sender.last_name} ({context.sender.id}) '
-                 f'in {context.chat.title}'
-                 f'at {time.strftime("%x %X", context.date)}:\n{context.text}\n',
+                 f'in {context.chat.title} '
+                 f'at {time.strftime("%x %X", context.date)}:\n{context.text}',
             method_name='VkBot.run()')
 
 
