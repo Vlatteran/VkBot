@@ -79,15 +79,18 @@ class Schedule:
             times = time.localtime()
         is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
         if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
-            result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year}:'
+            result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year} ({times.tm_wday}/{is_even}):'
             for i in self.schedule[self.dec_ru[times.tm_wday]][is_even]:
                 result += f'\n{i}: {self.schedule[self.dec_ru[times.tm_wday]][is_even][i]}'
         elif day == 'завтра' and (times.tm_wday == 6 or times.tm_wday < 4):
             if times.tm_wday == 6:
                 is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
-            result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} (понедельник/{is_even}):'
-            for i in self.schedule[self.dec_ru[0]][is_even]:
-                result += f'\n{i}: {self.schedule[self.dec_ru[0]][is_even][i]}'
+                week_day = 'понедельник'
+            else:
+                week_day = self.dec_ru[times.tm_wday]
+            result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({week_day}/{is_even}):'
+            for i in self.schedule[week_day][is_even]:
+                result += f'\n{i}: {self.schedule[week_day][is_even][i]}'
         elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
             if self.ru_dec[day] < times.tm_wday:
                 week = 'следующей'
