@@ -1,48 +1,35 @@
 import asyncio
 
-import VkBot
+import AsyncBot.VK.Message
+from AsyncBot.VK.Group import VkBot
+from schedule import Schedule
 
 
 class MyBot(VkBot.VkBot):
-    async def on_new_message(self, context: VkBot.Message):
-        await super().on_new_message(context)
-        if len(context.text) > 0 and context.text[0] == '!':
-            command = context.text[
-                      1:len(context.text) if context.text.find(' ') == -1 else context.text.find(' ')]
+
+    def __init__(self, access_token: str, group_id, bot_admin, logger=None, log_file='', log_to_file=False,
+                 log_to_console=True):
+        super().__init__(access_token, group_id, bot_admin, logger, log_file, log_to_file, log_to_console)
+        self.schedule = Schedule()
+
+    async def on_message_new(self, message: AsyncBot.VK.Message.Message):
+        await super().on_message_new(message)
+        if len(message.text) > 0 and message.text[0] == '!':
+            command = message.text[
+                      1:len(message.text) if message.text.find(' ') == -1 else message.text.find(' ')]
             print(command)
             if command in ('пары', 'расписание'):
-                self.tasks.append(
-                    asyncio.create_task(
-                        context.reply(self.schedule.show(context.text.replace(f'!{command}', '').strip()))
-                    )
-                )
+                await message.reply(self.schedule.show(message.text.replace(f'!{command}', '').strip()))
             elif command == "уведомления":
-                self.tasks.append(
-                    asyncio.create_task(
-                        context.reply('Уведомления включны')
-                    )
-                )
+                await message.reply('Уведомления включены')
                 async for text in self.schedule.time_to_next_lecture():
-                    self.tasks.append(
-                        asyncio.create_task(
-                            context.chat.send(text, self)
-                        )
-                    )
+                    await message.chat.send(text)
             elif command == 'stop':
-                if context.sender.id == self.bot_admin:
+                if message.sender.id == self.bot_admin:
                     await asyncio.sleep(10)
-                    self.is_running = False
-                    self.tasks.append(
-                        asyncio.create_task(
-                            context.reply('Bot has been stopped')
-                        )
-                    )
+                    await message.reply('Bot has been stopped')
                 else:
-                    self.tasks.append(
-                        asyncio.create_task(
-                            context.reply("You don't have permissions to stop bot")
-                        )
-                    )
+                    await message.reply("You don't have permissions to stop bot")
 
 
 def main():
