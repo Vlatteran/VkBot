@@ -1,18 +1,19 @@
 import aiohttp
 import json
 
-import VkBot
+import AsyncBot.VK.Message
+from AsyncBot.VK.Group import VkBot
 
 
 class TestBot(VkBot.VkBot):
-    async def on_new_message(self, context: VkBot.Message):
-        await super().on_new_message(context)
-        if len(context.text) > 0 and context.text[0] == '!':
-            command = context.text[
-                      1:len(context.text) if context.text.find(' ') == -1 else context.text.find(' ')]
+    async def on_message_new(self, message: AsyncBot.VK.Message.Message):
+        await super().on_message_new(message)
+        if len(message.text) > 0 and message.text[0] == '!':
+            command = message.text[
+                      1:len(message.text) if message.text.find(' ') == -1 else message.text.find(' ')]
             print(command)
             if command == 'testphoto':
-                print(await context.reply('', attachment=await self.upload('img.png')))
+                print(await message.reply('', attachments=[await self.upload('img.png')]))
 
     async def upload(self, photo):
         get_serv = f'photos.getMessagesUploadServer'
