@@ -4,6 +4,9 @@ from AsyncBot.VK.Session import Session
 
 
 class User:
+    """
+    Represent user from VK_API
+    """
     def __init__(self, user_id, vk_session: Session):
         method = 'users.get'
         params = {'user_ids': {user_id}}

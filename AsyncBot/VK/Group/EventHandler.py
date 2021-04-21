@@ -3,6 +3,11 @@ from AsyncBot.VK.User import User
 
 
 def handler(func):
+    """
+    Decorator which excludes the possibility of a recursive call in the absence of an override
+    :param func:
+    :return:
+    """
     async def wrapper(self, **kwargs):
         if func != self.__class__.__dict__[func.__name__]:
             await self.__class__.__dict__[func.__name__](self, **kwargs)
@@ -10,6 +15,10 @@ def handler(func):
 
 
 class EventHandler:
+    """
+    Defines handlers for events from VK_API
+    More like interface
+    """
     @handler
     async def on_message_new(self, message: Message, client_info: dict):
         pass

@@ -7,6 +7,9 @@ from AsyncBot.VK.User import User
 
 
 class Chat:
+    """
+    Represents chat from VK_API
+    """
     def __init__(self, chat_id, vk_session: Session):
         self.vk_session = vk_session
         method = 'messages.getConversationsById'
@@ -24,6 +27,13 @@ class Chat:
             self.title = 'ЛС'
 
     async def send(self, text: str = '', attachments: list = None, forward_message: str = None):
+        """
+        Sends message to this chat
+        :param text:
+        :param attachments:
+        :param forward_message:
+        :return:
+        """
         if text == '' and attachments is None:
             raise ValueError("Can't send empty message")
         method = 'messages.send'

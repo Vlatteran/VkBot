@@ -6,6 +6,9 @@ from AsyncBot.VK.Group.EventHandler import EventHandler
 
 
 class Events(Enum):
+    """
+    Represents events from VK_BOT_API and binds them to handlers
+    """
     # message events
     MESSAGE_NEW = partial(EventHandler.on_message_new)
 
