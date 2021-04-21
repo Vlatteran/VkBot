@@ -1,6 +1,5 @@
 import asyncio
 
-import AsyncBot.VK.Message
 from AsyncBot.VK.Group import VkBot
 from schedule import Schedule
 
@@ -12,8 +11,8 @@ class MyBot(VkBot.VkBot):
         super().__init__(access_token, group_id, bot_admin, logger, log_file, log_to_file, log_to_console)
         self.schedule = Schedule()
 
-    async def on_message_new(self, message: AsyncBot.VK.Message.Message):
-        await super().on_message_new(message)
+    async def on_message_new(self, message, client_info):
+        await super().on_message_new(message, client_info)
         if len(message.text) > 0 and message.text[0] == '!':
             command = message.text[
                       1:len(message.text) if message.text.find(' ') == -1 else message.text.find(' ')]
