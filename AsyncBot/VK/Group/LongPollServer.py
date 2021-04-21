@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 
 from AsyncBot import Logger
+from AsyncBot.VK.Group.Events import Events
 from AsyncBot.VK.Message import Message
 from AsyncBot.VK.Session import Session
 
@@ -47,21 +48,15 @@ class LongPollServer:
                     async with session.get(self.server, params=params) as resp:
                         result = await resp.json()
             except Exception as e:
-                asyncio.run(
-                    self.logger.log(f'try{retries + 1}: failed with:\n{e}',
-                                    method_name='LongPollServer.check()')
-                )
+                await self.logger.log(f'try{retries + 1}: failed with:\n{e}',
+                                      method_name='LongPollServer.check()')
 
                 retries += 1
                 if retries == 5:
-                    asyncio.run(
-                        self.logger.log('to many tries', method_name='LongPollServer.check()')
-                    )
+                    await self.logger.log('to many tries', method_name='LongPollServer.check()')
 
         if 'failed' in result:
-            asyncio.run(
-                self.logger.log(f'failed with:{result}', method_name='LongPollServer.check()')
-            )
+            await self.logger.log(f'failed with:{result}', method_name='LongPollServer.check()')
             error = result['failed']
             if error == 1:
                 self.ts = result['ts']
@@ -74,10 +69,11 @@ class LongPollServer:
         else:
             self.ts = result['ts']
             events = result['updates']
-            print(events)
             for event in events:
                 if event['type'] == 'message_new':
-                    yield event['type'], {'message': Message(event['object']['message'], self.vk_session)}
+                    yield Events[event['type'].upper()], {'message': Message(event['object']['message'],
+                                                                             self.vk_session),
+                                                          'client_info': event['object']['client_info']}
                 elif event['type'] in ('message_reply', 'message_edit'):
                     yield event['type'], {'message': Message(event['object']['message'], self.vk_session)}
                 elif event['type'] == 'message_typing_state':
