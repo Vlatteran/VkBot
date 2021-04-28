@@ -1,7 +1,7 @@
-import time
+import asyncio
 import datetime
 import re
-import asyncio
+import time
 
 MINUTE = 60
 HOUR = MINUTE * 60
@@ -149,40 +149,43 @@ class Schedule:
         'пятница': 4,
     }
 
-    def show(self, day=''):
-        date_regex = r'(\b(0?[1-9]|[1-2][0-9]|3[0-1])[\.\\]([1][0-2]|0?[1-9])\b)'
-        if re.match(date_regex, day):
-            days = re.split(r'[.\\]', day)
-            times = datetime.datetime(day=int(days[0]), month=int(days[1]), year=2021).timetuple()
-            day = ''
-        else:
-            times = time.localtime()
-        is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
-        if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
-            day = self.dec_ru[times.tm_wday]
-            result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year} ' \
-                     f'({day}/{is_even}):'
-        elif day == 'завтра' and (times.tm_wday == 6 or times.tm_wday < 4):
-            if times.tm_wday == 6:
-                is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
-                day = 'понедельник'
+    def show(self, days: list):
+        if days is None or len(days) == 0:
+            days = ['']
+        for day in days:
+            date_regex = r'(\b(0?[1-9]|[1-2][0-9]|3[0-1])[\.\\]([1][0-2]|0?[1-9])\b)'
+            if re.match(date_regex, day):
+                date = re.split(r'[.\\]', day)
+                times = datetime.datetime(day=int(date[0]), month=int(date[1]), year=2021).timetuple()
+                day = ''
             else:
+                times = time.localtime()
+            is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
+            if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
                 day = self.dec_ru[times.tm_wday]
-            result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({day}/{is_even}):'
-        elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
-            if self.ru_dec[day] < times.tm_wday:
-                week = 'следующей'
-                is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
+                result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year} ' \
+                         f'({day}/{is_even}):'
+            elif day == 'завтра' and (times.tm_wday == 6 or times.tm_wday < 4):
+                if times.tm_wday == 6:
+                    is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
+                    day = 'понедельник'
+                else:
+                    day = self.dec_ru[times.tm_wday+1]
+                result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({day}/{is_even}):'
+            elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
+                if self.ru_dec[day] < times.tm_wday:
+                    week = 'следующей'
+                    is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
+                else:
+                    week = 'этой'
+                result = f'Расписсание на {day if day[-1] != "а" else day[:len(day) - 1] + "у"} {week} недели:'
             else:
-                week = 'этой'
-            result = f'Расписсание на {day if day[-1] != "а" else day[:len(day) - 1] + "у"} {week} недели:'
-        else:
-            result = 'Не удалось найти рассписание на указаный день'
-        if result != 'Не удалось найти рассписание на указаный день':
-            day_sch = self.schedule[day][is_even]
-            for i in day_sch:
-                result += f"\n{day_sch[i]['начало']} - {day_sch[i]['конец']}: {i} ({day_sch[i]['вид занятия']})"
-        return result
+                result = 'Не удалось найти рассписание на указаный день'
+            if result != 'Не удалось найти рассписание на указаный день':
+                day_sch = self.schedule[day][is_even]
+                for i in day_sch:
+                    result += f"\n{day_sch[i]['начало']} - {day_sch[i]['конец']}: {i} ({day_sch[i]['вид занятия']})"
+            yield result
 
     async def time_to_next_lecture(self):
         while True:
@@ -213,8 +216,3 @@ class Schedule:
                             break
                 else:
                     await asyncio.sleep(DAY / 2)
-
-
-if __name__ == '__main__':
-    a = Schedule()
-    print(a.show('завтра'))
