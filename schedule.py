@@ -192,9 +192,9 @@ class Schedule:
             times = time.localtime()
             if times.tm_wday == 6:
                 print(f'waiting {DAY / 2}')
-                await asyncio.sleep(1) # (DAY / 2)
+                await asyncio.sleep(DAY / 2)
             elif times.tm_wday == 5:
-                await asyncio.sleep(1) # (DAY)
+                await asyncio.sleep(DAY)
             elif times.tm_wday <= 4:
                 day = self.dec_ru[times.tm_wday]
                 now = times.tm_hour * HOUR + times.tm_min * MINUTE
@@ -209,13 +209,13 @@ class Schedule:
                         if delay <= 10 * MINUTE:
                             timer = int(delay / MINUTE)
                             yield f"{i} через {timer}"
-                            await asyncio.sleep(60) # (delay + MINUTE)
+                            await asyncio.sleep(delay + MINUTE)
                             break
                         else:
-                            await asyncio.sleep(60) # (delay / 2)
+                            await asyncio.sleep(delay / 2)
                             break
                 else:
-                    await asyncio.sleep(60) # (DAY / 2)
+                    await asyncio.sleep(DAY / 2)
 
 
 async def main():
