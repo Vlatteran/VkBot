@@ -170,7 +170,7 @@ class Schedule:
                     is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
                     day = 'понедельник'
                 else:
-                    day = self.dec_ru[times.tm_wday+1]
+                    day = self.dec_ru[times.tm_wday + 1]
                 result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({day}/{is_even}):'
             elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
                 if self.ru_dec[day] < times.tm_wday:
@@ -192,9 +192,9 @@ class Schedule:
             times = time.localtime()
             if times.tm_wday == 6:
                 print(f'waiting {DAY / 2}')
-                await asyncio.sleep(DAY / 2)
+                await asyncio.sleep(1) # (DAY / 2)
             elif times.tm_wday == 5:
-                await asyncio.sleep(DAY)
+                await asyncio.sleep(1) # (DAY)
             elif times.tm_wday <= 4:
                 day = self.dec_ru[times.tm_wday]
                 now = times.tm_hour * HOUR + times.tm_min * MINUTE
@@ -209,10 +209,18 @@ class Schedule:
                         if delay <= 10 * MINUTE:
                             timer = int(delay / MINUTE)
                             yield f"{i} через {timer}"
-                            await asyncio.sleep(delay + MINUTE)
+                            await asyncio.sleep(60) # (delay + MINUTE)
                             break
                         else:
-                            await asyncio.sleep(delay / 2)
+                            await asyncio.sleep(60) # (delay / 2)
                             break
                 else:
-                    await asyncio.sleep(DAY / 2)
+                    await asyncio.sleep(60) # (DAY / 2)
+
+
+async def main():
+    async for text in Schedule().time_to_next_lecture():
+        print(text)
+
+if __name__ == '__main__':
+    asyncio.run(main())
