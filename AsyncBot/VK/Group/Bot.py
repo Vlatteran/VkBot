@@ -62,7 +62,7 @@ class Bot(EventHandler):
             command = temp[0]
             args = temp[1:]
             try:
-                await self.commands[command](args, message)
+                asyncio.get_event_loop().create_task(self.commands[command](args, message))
             except KeyError:
                 pass
 
