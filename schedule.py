@@ -163,7 +163,7 @@ class Schedule:
             is_even = 'числитель' if (times.tm_yday - 32) // 7 % 2 == 0 else 'знаменатель'
             if day in ('сегодня', '') and 0 <= times.tm_wday < 5:
                 day = self.dec_ru[times.tm_wday]
-                result = f'Расписсание на {times.tm_mday}/{times.tm_mon}/{times.tm_year} ' \
+                result = f'Расписание на {times.tm_mday}/{times.tm_mon}/{times.tm_year} ' \
                          f'({day}/{is_even}):'
             elif day == 'завтра' and (times.tm_wday == 6 or times.tm_wday < 4):
                 if times.tm_wday == 6:
@@ -171,17 +171,17 @@ class Schedule:
                     day = 'понедельник'
                 else:
                     day = self.dec_ru[times.tm_wday + 1]
-                result = f'Расписсание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({day}/{is_even}):'
+                result = f'Расписание на {times.tm_mday + 1}/{times.tm_mon}/{times.tm_year} ({day}/{is_even}):'
             elif day in ('понедельник', 'вторник', 'среда', 'четверг', 'пятница'):
                 if self.ru_dec[day] < times.tm_wday:
                     week = 'следующей'
                     is_even = 'числитель' if is_even == 'знаменатель' else 'знаменатель'
                 else:
                     week = 'этой'
-                result = f'Расписсание на {day if day[-1] != "а" else day[:len(day) - 1] + "у"} {week} недели:'
+                result = f'Расписание на {day if day[-1] != "а" else day[:len(day) - 1] + "у"} {week} недели:'
             else:
-                result = 'Не удалось найти рассписание на указаный день'
-            if result != 'Не удалось найти рассписание на указаный день':
+                result = 'Не удалось найти расписание на указаный день'
+            if result != 'Не удалось найти расписание на указаный день':
                 day_sch = self.schedule[day][is_even]
                 for i in day_sch:
                     result += f"\n{day_sch[i]['начало']} - {day_sch[i]['конец']}: {i} ({day_sch[i]['вид занятия']})"
