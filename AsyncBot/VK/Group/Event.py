@@ -70,6 +70,5 @@ class Events(Enum):
         self.handler = handler
 
     def __call__(self, context: dict, handler) -> Coroutine:
-        print()
-        return self.value(self=handler, **context)
 
+        return self.value(self=handler, **context)
