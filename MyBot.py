@@ -1,10 +1,12 @@
+import logging
+
 from AsyncBot.VK.Group.Bot import Bot
 from config import token, group_id as group, bot_admin as admin
 from schedule import Schedule
 
 
 def main():
-    bot = Bot(access_token=token, group_id=group, bot_admin=admin)
+    bot = Bot(access_token=token, group_id=group, bot_admin=admin, log_file='log.log', loglevel=logging.DEBUG)
 
     @bot.command('пары')
     async def lectures(args, message):
