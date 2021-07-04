@@ -6,6 +6,9 @@ from AsyncBot.VK.Session import Session
 class User:
     """
     Represent user from VK_API
+
+    Attributes:
+        id (int): ID of user
     """
     def __init__(self, user_id, vk_session: Session):
         method = 'users.get'
@@ -15,3 +18,6 @@ class User:
         self.id = user_id
         self.first_name = result['first_name']
         self.last_name = result['last_name']
+
+    def __eq__(self, other):
+        return isinstance(other, User) and self.id == other.id

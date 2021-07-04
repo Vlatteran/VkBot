@@ -26,13 +26,29 @@ class Chat:
         else:
             self.title = 'ЛС'
 
-    async def send(self, text: str = '', attachments: list = None, forward_message: str = None):
+    async def send(self, text: str = '', attachments: list = None, forward_message: dict = None) -> dict:
         """
-        Sends message to this chat
-        :param text:
-        :param attachments:
-        :param forward_message:
-        :return:
+
+        Args:
+            text: str
+                the text of the message
+            attachments: list
+                list of the attachments text of the message
+            forward_message: dict
+                {
+                    'peer_id': int,
+                    'conversation_message_ids': list[int],
+                    Optional['is_reply']: 1 if replying (only if forwarding to one message in same chat)
+                }
+
+        Returns:
+            dict:
+                {
+                    'peer_id': 'идентификатор назначения',
+                    'message_id': 'идентификатор сообщения',
+                    'conversation_message_id': 'идентификатор сообщения в диалоге',
+                    'error': 'сообщение об ошибке, если сообщение не было доставлено получателю'
+                }
         """
         if text == '' and attachments is None:
             raise ValueError("Can't send empty message")
