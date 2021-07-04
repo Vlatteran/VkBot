@@ -1,41 +1,39 @@
-import asyncio
+import logging
+from typing import *
 
 import aiohttp
 
-from AsyncBot import Logger
-from AsyncBot.VK.Group.Events import Events
+from AsyncBot.VK.Group.Event import Event
 from AsyncBot.VK.Message import Message
 from AsyncBot.VK.Session import Session
 
 
 class LongPollServer:
-    server: str
-    key: str
-    ts: str
 
-    def __init__(self, vk_session: Session, logger: Logger):
-        self.vk_session = vk_session
-        self.logger: Logger = logger
+    def __init__(self, vk_session: Session):
+        self.vk_session: Session = vk_session
         self.get_long_poll_server()
+        self.server: str = ''
+        self.key: str = ''
+        self.ts: int = 0
 
     def get_long_poll_server(self):
         try:
-            method = 'groups.getLongPollServer'
-
-            long_poll_serv = asyncio.run(self.vk_session.method(method=method, params={}))
-
-            long_poll_serv = long_poll_serv['response']
+            long_poll_serv = self.vk_session.method_sync('groups.getLongPollServer')['response']
             self.server = long_poll_serv['server']
             self.key = long_poll_serv['key']
             self.ts = long_poll_serv['ts']
         except KeyError:
-            asyncio.run(
-                self.logger.log(
-                    "Can't get a LongPollServer",
-                    method_name='LongPollServer.get_long_poll_server()')
-            )
+            logging.exception("Can't get a LongPollServer")
 
-    async def check(self) -> (str, dict):
+    async def check(self) -> AsyncIterable[tuple[Callable, Dict]]:
+        """
+        Checks for new events on long_poll_server, updates long_poll_server information if failed to get events
+
+        Yields:
+            tuple
+                event and context dictionary
+        """
         result = None
         retries = 0
         while result is None:
@@ -47,41 +45,38 @@ class LongPollServer:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(self.server, params=params) as resp:
                         result = await resp.json()
-            except Exception as e:
-                await self.logger.log(f'try{retries + 1}: failed with:\n{e}',
-                                      method_name='LongPollServer.check()')
-
-                retries += 1
-                if retries == 5:
-                    await self.logger.log('to many tries', method_name='LongPollServer.check()')
+            except Exception:
+                logging.exception(f'try {(retries := retries + 1)}')
 
         if 'failed' in result:
-            await self.logger.log(f'failed with:{result}', method_name='LongPollServer.check()')
-            error = result['failed']
-            if error == 1:
+            error_code = result['failed']
+            if error_code == 1:
+                logging.info('Updating ts')
                 self.ts = result['ts']
-            elif error in (2, 3):
+            elif error_code in (2, 3):
+                logging.info('Updating long_poll_server')
                 self.get_long_poll_server()
             else:
-                await self.logger.log(f'Unexpected error code: {error}\n{result}',
-                                      method_name='LongPollServer.check()')
+                logging.error(f'Unexpected error_code code: {error_code} in {result}')
 
         else:
             self.ts = result['ts']
             events = result['updates']
             for event in events:
                 if event['type'] == 'message_new':
-                    yield Events[event['type'].upper()], {'message': Message(event['object']['message'],
-                                                                             self.vk_session),
-                                                          'client_info': event['object']['client_info']}
+                    yield Event[event['type'].upper()], {'message': Message(event['object']['message'],
+                                                                            self.vk_session),
+                                                         'client_info': event['object']['client_info']}
                 elif event['type'] in ('message_reply', 'message_edit'):
-                    yield event['type'], {'message': Message(event['object']['message'], self.vk_session)}
-                elif event['type'] == 'message_typing_state':
-                    pass
+                    yield Event[event['type'].upper()], {'message': Message(event['object']['message'],
+                                                                            self.vk_session)}
 
-    async def listen(self) -> (str, dict):
+    async def listen(self) -> AsyncIterable[tuple[Callable, Dict]]:
+        """
+        Yields:
+            tuple
+                event and context dictionary
+        """
         while True:
-            result = self.check()
-            if result is not None:
-                async for event in result:
-                    yield event
+            async for event in self.check():
+                yield event
